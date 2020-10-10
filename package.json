@@ -1,0 +1,12 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "the api for disq.me",
+  "main": "index.js",
+  "repository": "https://github.com/DisqTeam/api",
+  "author": "etstringy",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
