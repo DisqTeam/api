@@ -1,3 +1,6 @@
+# disq
+config/db.json
+
 # Logs
 logs
 *.log
