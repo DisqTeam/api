@@ -12,17 +12,14 @@ const db = new Sequelize("disq", dbConfig.username, dbConfig.password, {
     language: 'en'
 })
 
-const dbHandler = {}
-dbHandler.connect = async () => {
-    try {
-        await db.authenticate();
-        console.log('[DB] Connected!');
-    } catch (error) {
-        console.error('[DB] Error connecting! - ', error);
-    }
-}
-
-dbHandler.connect()
+db
+.authenticate()
+.then(() => {
+    console.log("[Database] Connected!")
+})
+.catch((err) => {
+    console.log(`[Database] Error connecting! - ${err}`)
+})
 
 
 exports = db;
