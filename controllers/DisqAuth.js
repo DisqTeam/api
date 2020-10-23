@@ -9,42 +9,50 @@ const sendgrid = require('@sendgrid/mail');
 
 const auth = {}
 auth.login = async (req, res) => {
-    if(!req.body.username) return res.json({ success: false, message: msg.auth.noUsername })
-    if(!req.body.password) return res.json({ success: false, message: msg.auth.noPassword })
-    let user = await User.findAll({
-        // where: {
-        //         username: req.body.username
-        // }
-    })
-    res.send(user)
+    if(!req.body.username) return res.status(400).json({ success: false, message: msg.auth.noUsername })
+    if(!req.body.password) return res.status(400).json({ success: false, message: msg.auth.noPassword })
+
+    let user = await User.findOne({ where: { username: req.body.username } })
+    if(!user) return res.status(400).json({ success: false, message: msg.auth.accountNotExist })
+
+    bcrypt.compare(req.body.password, user.password, async (err, result) => {
+        if(err){
+            console.error(err)
+            return res.status(500).json({ success: false, message: msg.error.genericError })
+        }
+        if(!result && user.administrator) return res.status(403).json({ success: false, message: msg.auth.incorrectCredsAdmin })
+        if(!result) return res.status(403).json({ success: false, message: msg.auth.incorrectCreds })
+
+        res.json({ success: true, token: user.token })
+    });
 }
 
 auth.register = async (req, res) => {
-    if(!req.body.username) return res.json({ success: false, message: msg.auth.noUsername })
-    if(!req.body.password) return res.json({ success: false, message: msg.auth.noPassword })
-    if(!req.body.email) return res.json({ success: false, message: msg.auth.noEmail })
+    if(!req.body.username) return res.status(400).json({ success: false, message: msg.auth.noUsername })
+    if(!req.body.password) return res.status(400).json({ success: false, message: msg.auth.noPassword })
+    if(!req.body.email) return res.status(400).json({ success: false, message: msg.auth.noEmail })
 
     // Length validation
     if (req.body.username.length < config.lengths.username.min || req.body.username.length > config.lengths.username.max) {
-		return res.json({ success: false, description: `Username must have ${config.lengths.username.min}-${config.lengths.username.max} characters` });
+		return res.status(400).json({ success: false, description: `Username must have ${config.lengths.username.min}-${config.lengths.username.max} characters` });
 	}
 	if (req.body.password.length < config.lengths.password.min || req.body.password.length > config.lengths.password.max) {
-		return res.json({ success: false, description: `Password must have must have ${config.lengths.password.min}-${config.lengths.password.max} characters` });
+		return res.status(400).json({ success: false, description: `Password must have must have ${config.lengths.password.min}-${config.lengths.password.max} characters` });
     }
 
     // Email validation
-    if(!validator.isEmail(req.body.email)) return res.json({ success: false, message: msg.auth.invalidEmail })
+    if(!validator.isEmail(req.body.email)) return res.status(400).json({ success: false, message: msg.auth.invalidEmail })
 
     // Check if username already exists
     let existsUsername = await User.findOne({ where: { username: req.body.username } })
-    if(existsUsername) return res.json({ success: false, message: msg.auth.usernameTaken })
+    if(existsUsername) return res.status(400).json({ success: false, message: msg.auth.usernameTaken })
 
     // Check if email already exists
     let existsEmail = await User.findOne({ where: { email: req.body.email } })
-    if(existsEmail) return res.json({ success: false, message: msg.auth.emailTaken })
+    if(existsEmail) return res.status(400).json({ success: false, message: msg.auth.emailTaken })
 
     bcrypt.hash(req.body.password, 10, async (err, hash) => {
-        if(err) return res.json({ success: false, description: msg.error.hashError });
+        if(err) return res.status(500).json({ success: false, description: msg.error.hashError });
         
         const userId = randomstring.generate({
             length: 18,

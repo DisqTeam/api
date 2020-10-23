@@ -15,7 +15,7 @@ sendgrid.setApiKey(keys.sendgrid);
 let DisqAuth = require("./controllers/DisqAuth")
 
 // Endpoints
-disq.get('/', (req, res) => res.json({ "success": true,  }))
+disq.get('/', (req, res) => res.json({ "success": true }))
 disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
 disq.post('/auth/register', (req, res) => DisqAuth.register(req, res))
 disq.post('/auth/verifyEmail', (req, res) => DisqAuth.verifyEmail(req, res))

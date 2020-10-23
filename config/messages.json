@@ -9,7 +9,8 @@
         "noAuth": "You are not authenticated",
         "usernameTaken": "This username is taken",
         "emailTaken": "An account already exists with this email",
-        "invalidEmailToken": "Invalid verification code"
+        "invalidEmailToken": "Invalid verification code",
+        "accountNotExist": "Account does not exist"
     },
     "error": {
         "hashError": "Error generating password hash (ಥ﹏ಥ)",
