@@ -1,41 +1,42 @@
 const { Sequelize } = require('sequelize');
 const db = require("./db")
 
-const SUrl = db.define('shorturls', { 
-    userId: Sequelize.NUMBER,
+exports.SUrl = db.define('shorturls', { 
+    userId: Sequelize.INTEGER,
     shortcode: Sequelize.STRING,
     url: Sequelize.STRING,
     timestamp: Sequelize.DATE
 });
 
-const File = db.define('files', { 
-    userId: Sequelize.NUMBER,
+exports.File = db.define('files', { 
+    userId: Sequelize.INTEGER,
     type: Sequelize.STRING,
     size: Sequelize.STRING,
     hash: Sequelize.STRING,
     timestamp: Sequelize.DATE
 });
 
-const User = db.define('users', { 
-    userId: Sequelize.NUMBER,
+exports.User = db.define('users', { 
+    userId: Sequelize.BIGINT,
+    enabled: Sequelize.BOOLEAN,
+
+    // info
     email: Sequelize.STRING,
     username: Sequelize.STRING,
     password: Sequelize.STRING,
+
+    // sys
     token : Sequelize.STRING,
     timestamp: Sequelize.DATE,
-    account: {
-        enabled: Sequelize.BOOLEAN,
-        verified: Sequelize.BOOLEAN,
-        administrator: Sequelize.BOOLEAN
-    }, 
-    emailVerification: {
-        code: Sequelize.NUMBER,
-        verified: Sequelize.BOOLEAN
-    }
+
+    // privileges
+    verified: Sequelize.BOOLEAN,
+    administrator: Sequelize.BOOLEAN,
+
+    // email verification
+    emailVerifyCode: Sequelize.STRING,
+    emailVerified: Sequelize.BOOLEAN
 });
 
-exports {
-    SUrl,
-    File,
-    User
-}
+// Sync models to db
+db.sync()

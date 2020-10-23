@@ -1,3 +1,20 @@
 {
-    "port": 8415
+    "port": 8415,
+    "domain": "http://localhost:8415",
+    "lengths": {
+        "username": {
+            "min": 4,
+            "max": 32
+        },
+        "password": {
+            "min": 6,
+            "max": 64
+        }
+    },
+    "email": {
+        "from": "disq@stringy.software",
+        "templates": {
+            "verification": "d-bcfce19e1bb2455d90e22e4118e64d4d"
+        }
+    }
 }

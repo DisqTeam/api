@@ -4,7 +4,7 @@ const dbConfig = require("../config/db.json")
 const db = new Sequelize("disq", dbConfig.username, dbConfig.password, {
     host: dbConfig.server,
     port: dbConfig.port,
-    logging: console.log,
+    // logging: false,
     maxConcurrentQueries: 100,
     dialect: 'postgres',
     ssl: 'Amazon RDS',
@@ -15,11 +15,11 @@ const db = new Sequelize("disq", dbConfig.username, dbConfig.password, {
 db
 .authenticate()
 .then(() => {
-    console.log("[Database] Connected!")
+    console.log("DB Connected!")
 })
 .catch((err) => {
-    console.log(`[Database] Error connecting! - ${err}`)
+    console.error(`[Database] Error connecting! - ${err}`)
 })
 
 
-exports = db;
+module.exports = db;

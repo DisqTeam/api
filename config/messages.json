@@ -1,5 +1,18 @@
 {
-    "noUsername": "No username entered",
-    "noPassword": "No password entered",
-    
+    "auth": {
+        "noUsername": "No username entered",
+        "noPassword": "No password entered",
+        "noEmail": "No email entered",
+        "invalidEmail": "Invalid email entered",
+        "incorrectCreds": "Incorrect password/username (ಥ﹏ಥ)",
+        "incorrectCredsAdmin": "Nice try mate. (Incorrect password/username)",
+        "noAuth": "You are not authenticated",
+        "usernameTaken": "This username is taken",
+        "emailTaken": "An account already exists with this email",
+        "invalidEmailToken": "Invalid verification code"
+    },
+    "error": {
+        "hashError": "Error generating password hash (ಥ﹏ಥ)",
+        "genericError": "An error occured trying to complete that action!"
+    }
 }
