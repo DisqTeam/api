@@ -20,8 +20,8 @@ auth.login = async (req, res) => {
             console.error(err)
             return res.status(500).json({ success: false, message: msg.error.genericError })
         }
-        if(!result && user.administrator) return res.status(403).json({ success: false, message: msg.auth.incorrectCredsAdmin })
-        if(!result) return res.status(403).json({ success: false, message: msg.auth.incorrectCreds })
+        if(!result && user.administrator) return res.status(401).json({ success: false, message: msg.auth.incorrectCredsAdmin })
+        if(!result) return res.status(401).json({ success: false, message: msg.auth.incorrectCreds })
 
         res.json({ success: true, token: user.token })
     });
@@ -66,8 +66,8 @@ auth.register = async (req, res) => {
         let newUser = User.build({
             userId,
             enabled: true,
-            email: req.body.email,
-            username: req.body.username,
+            email: validator.escape(req.body.email),
+            username: validator.escape(req.body.username),
             password: hash,
             token,
             timestamp,
@@ -98,7 +98,7 @@ auth.register = async (req, res) => {
 
 auth.verifyEmail = async (req, res) => {
     let code = req.body.emailToken
-    if(!code) return res.json({ success: false, message: msg.auth.invalidEmailToken })
+    if(!code) return res.status(400).json({ success: false, message: msg.auth.invalidEmailToken })
 
     let user = await User.findOne({
         where: {
@@ -106,8 +106,8 @@ auth.verifyEmail = async (req, res) => {
         }
     })
 
-    if(!user) return res.json({ success: false, message: msg.auth.invalidEmailToken })
-    if(user.emailVerifyCode != code) return res.json({ success: false, message: msg.auth.invalidEmailToken })
+    if(!user) return res.status(404).json({ success: false, message: msg.auth.invalidEmailToken })
+    if(user.emailVerifyCode != code) return res.status(401).json({ success: false, message: msg.auth.invalidEmailToken })
     
     user.emailVerified = true;
     await user.save()

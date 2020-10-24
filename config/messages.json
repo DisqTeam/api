@@ -10,10 +10,24 @@
         "usernameTaken": "This username is taken",
         "emailTaken": "An account already exists with this email",
         "invalidEmailToken": "Invalid verification code",
-        "accountNotExist": "Account does not exist"
+        "accountNotExist": "Account does not exist",
+        "invalidToken": "Invalid auth token",
+        "accountDisabled": "Your account has been disabled ⚆ _ ⚆",
+        "needVerifyEmail": "Please verify your email."
+    },
+    "surl": {
+        "noUrl": "No URL to shorten was provided",
+        "noShortcode": "No shortcode was provided",
+        "noPermissionCustom": "You do not have permission to create custom short urls",
+        "noPermissionDelete": "You do not have permission to delete this short url",
+        "invalidUrl": "Invalid url provided",
+        "notFound": "That Short URL was not found"
     },
     "error": {
         "hashError": "Error generating password hash (ಥ﹏ಥ)",
         "genericError": "An error occured trying to complete that action!"
+    },
+    "other": {
+        "gilbert": "gilbert"
     }
 }

@@ -2,14 +2,14 @@ const { Sequelize } = require('sequelize');
 const db = require("./db")
 
 exports.SUrl = db.define('shorturls', { 
-    userId: Sequelize.INTEGER,
+    userId: Sequelize.BIGINT,
     shortcode: Sequelize.STRING,
     url: Sequelize.STRING,
     timestamp: Sequelize.DATE
 });
 
 exports.File = db.define('files', { 
-    userId: Sequelize.INTEGER,
+    userId: Sequelize.BIGINT,
     type: Sequelize.STRING,
     size: Sequelize.STRING,
     hash: Sequelize.STRING,

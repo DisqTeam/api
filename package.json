@@ -8,8 +8,10 @@
   "license": "MIT",
   "dependencies": {
     "@sendgrid/mail": "^7.3.0",
+    "atob": "^2.1.2",
     "bcryptjs": "^2.4.3",
     "better-logging": "^4.4.0",
+    "btoa": "^1.2.1",
     "express": "^4.17.1",
     "pg": "^8.4.1",
     "pg-hstore": "^2.3.3",
