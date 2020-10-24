@@ -2,6 +2,7 @@
   <img width="100" height="100" src="https://disq.me/9oqWP.png">
   <br/>
   <b>disq.me API</b>
+  <br/>
   by etstringy
 </p>
 
