@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const sendgrid = require('@sendgrid/mail');
 const disq = express()
 require('better-logging')(console);
@@ -7,6 +8,7 @@ require('better-logging')(console);
 const config = require("./config/main.json")
 const keys = require("./config/keys.json")
 const db = require("./db/db")
+disq.use(cors())
 disq.use(express.json())
 disq.use(require('sanitize').middleware)
 sendgrid.setApiKey(keys.sendgrid);
@@ -20,6 +22,7 @@ disq.get('/', (req, res) => res.json({ "success": true }))
 disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
 disq.post('/auth/register', (req, res) => DisqAuth.register(req, res))
 disq.post('/auth/verifyEmail', (req, res) => DisqAuth.verifyEmail(req, res))
+
 disq.post('/surl/get', (req, res) => DisqSURL.get(req, res))
 disq.get('/surl/list', (req, res) => DisqSURL.list(req, res))
 disq.post('/surl/create', (req, res) => DisqSURL.create(req, res))

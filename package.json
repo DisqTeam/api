@@ -12,12 +12,14 @@
     "bcryptjs": "^2.4.3",
     "better-logging": "^4.4.0",
     "btoa": "^1.2.1",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "pg": "^8.4.1",
     "pg-hstore": "^2.3.3",
     "randomstring": "^1.1.5",
     "sanitize": "^2.1.0",
-    "sequelize": "^6.3.5"
+    "sequelize": "^6.3.5",
+    "sequelize-cli": "^6.2.0"
   },
   "scripts": {
     "start": "nodemon index",
