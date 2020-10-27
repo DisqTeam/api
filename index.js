@@ -23,8 +23,10 @@ disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
 disq.post('/auth/register', (req, res) => DisqAuth.register(req, res))
 disq.post('/auth/verifyEmail', (req, res) => DisqAuth.verifyEmail(req, res))
 
+disq.post('/tokens/verify', (req, res) => DisqAuth.checkToken(req, res))
+
 disq.post('/surl/get', (req, res) => DisqSURL.get(req, res))
-disq.get('/surl/list', (req, res) => DisqSURL.list(req, res))
+disq.get('/surl/list/:page', (req, res) => DisqSURL.list(req, res))
 disq.post('/surl/create', (req, res) => DisqSURL.create(req, res))
 disq.post('/surl/delete', (req, res) => DisqSURL.delete(req, res))
 

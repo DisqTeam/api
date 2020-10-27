@@ -12,7 +12,7 @@
         }
     },
     "email": {
-        "from": "disq@stringy.software",
+        "from": "noreply.disq.me",
         "templates": {
             "verification": "d-bcfce19e1bb2455d90e22e4118e64d4d"
         }

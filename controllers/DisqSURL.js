@@ -46,7 +46,18 @@ surl.create = async (req, res) => {
 
 surl.list = async (req, res) => {
     let auth = await utils.authorize(req, res)
-    let shorts = await SUrl.findAll({ where: { userId: auth.userId }})
+
+    let offset = req.params.page;
+    if (offset === undefined) offset = 0;
+    
+    let shorts = await SUrl.findAll({ 
+        where: { userId: auth.userId },
+        limit: 25,
+        order: [
+            ['id', 'DESC']
+        ],
+        offset: 25 * offset
+    })
     res.json({ success: true, shorts })
 }
 

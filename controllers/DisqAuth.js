@@ -9,28 +9,28 @@ const sendgrid = require('@sendgrid/mail');
 
 const auth = {}
 auth.login = async (req, res) => {
-    if(!req.body.username) return res.status(400).json({ success: false, message: msg.auth.noUsername })
-    if(!req.body.password) return res.status(400).json({ success: false, message: msg.auth.noPassword })
+    if(!req.body.username) return res.status(400).json({ success: false, description: msg.auth.noUsername })
+    if(!req.body.password) return res.status(400).json({ success: false, description: msg.auth.noPassword })
 
     let user = await User.findOne({ where: { username: req.body.username } })
-    if(!user) return res.status(400).json({ success: false, message: msg.auth.accountNotExist })
+    if(!user) return res.status(400).json({ success: false, description: msg.auth.accountNotExist })
 
     bcrypt.compare(req.body.password, user.password, async (err, result) => {
         if(err){
             console.error(err)
-            return res.status(500).json({ success: false, message: msg.error.genericError })
+            return res.status(500).json({ success: false, description: msg.error.genericError })
         }
-        if(!result && user.administrator) return res.status(401).json({ success: false, message: msg.auth.incorrectCredsAdmin })
-        if(!result) return res.status(401).json({ success: false, message: msg.auth.incorrectCreds })
+        if(!result && user.administrator) return res.status(401).json({ success: false, description: msg.auth.incorrectCredsAdmin })
+        if(!result) return res.status(401).json({ success: false, description: msg.auth.incorrectCreds })
 
         res.json({ success: true, token: user.token })
     });
 }
 
 auth.register = async (req, res) => {
-    if(!req.body.username) return res.status(400).json({ success: false, message: msg.auth.noUsername })
-    if(!req.body.password) return res.status(400).json({ success: false, message: msg.auth.noPassword })
-    if(!req.body.email) return res.status(400).json({ success: false, message: msg.auth.noEmail })
+    if(!req.body.username) return res.status(400).json({ success: false, description: msg.auth.noUsername })
+    if(!req.body.password) return res.status(400).json({ success: false, description: msg.auth.noPassword })
+    if(!req.body.email) return res.status(400).json({ success: false, description: msg.auth.noEmail })
 
     // Length validation
     if (req.body.username.length < config.lengths.username.min || req.body.username.length > config.lengths.username.max) {
@@ -41,15 +41,15 @@ auth.register = async (req, res) => {
     }
 
     // Email validation
-    if(!validator.isEmail(req.body.email)) return res.status(400).json({ success: false, message: msg.auth.invalidEmail })
+    if(!validator.isEmail(req.body.email)) return res.status(400).json({ success: false, description: msg.auth.invalidEmail })
 
     // Check if username already exists
     let existsUsername = await User.findOne({ where: { username: req.body.username } })
-    if(existsUsername) return res.status(400).json({ success: false, message: msg.auth.usernameTaken })
+    if(existsUsername) return res.status(400).json({ success: false, description: msg.auth.usernameTaken })
 
     // Check if email already exists
     let existsEmail = await User.findOne({ where: { email: req.body.email } })
-    if(existsEmail) return res.status(400).json({ success: false, message: msg.auth.emailTaken })
+    if(existsEmail) return res.status(400).json({ success: false, description: msg.auth.emailTaken })
 
     bcrypt.hash(req.body.password, 10, async (err, hash) => {
         if(err) return res.status(500).json({ success: false, description: msg.error.hashError });
@@ -98,7 +98,7 @@ auth.register = async (req, res) => {
 
 auth.verifyEmail = async (req, res) => {
     let code = req.body.emailToken
-    if(!code) return res.status(400).json({ success: false, message: msg.auth.invalidEmailToken })
+    if(!code) return res.status(400).json({ success: false, description: msg.auth.invalidEmailToken })
 
     let user = await User.findOne({
         where: {
@@ -106,8 +106,8 @@ auth.verifyEmail = async (req, res) => {
         }
     })
 
-    if(!user) return res.status(404).json({ success: false, message: msg.auth.invalidEmailToken })
-    if(user.emailVerifyCode != code) return res.status(401).json({ success: false, message: msg.auth.invalidEmailToken })
+    if(!user) return res.status(404).json({ success: false, description: msg.auth.invalidEmailToken })
+    if(user.emailVerifyCode != code) return res.status(401).json({ success: false, description: msg.auth.invalidEmailToken })
     
     user.emailVerified = true;
     await user.save()
@@ -118,6 +118,24 @@ auth.verifyEmail = async (req, res) => {
 
 auth.changePassword = async (req, res) => {
     
+}
+
+auth.checkToken = async (req, res) => {
+    const token = req.body.token;
+    if (token === undefined) return res.status(401).json({ success: false, description: msg.auth.noAuth });
+    
+    const user = await User.findOne({ where: { token: token }})
+    if(!user) return res.status(401).json({ success: false, description: msg.auth.invalidToken })
+    if(!user.enabled) return res.status(401).json({ success: false, description: msg.auth.accountDisabled })
+    if(!user.emailVerified) return res.status(401).json({ success: false, description: msg.auth.needVerifyEmail, emailVerify: true })
+    res.json({
+        success: true,
+        user: {
+            username: user.username,
+            administrator: user.administrator,
+            verified: user.verified
+        }
+    })
 }
 
 module.exports = auth;
