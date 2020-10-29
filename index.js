@@ -1,4 +1,5 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const sendgrid = require('@sendgrid/mail');
 const disq = express()
@@ -11,11 +12,17 @@ const db = require("./db/db")
 disq.use(cors())
 disq.use(express.json())
 disq.use(require('sanitize').middleware)
+disq.set('trust proxy', 1);
 sendgrid.setApiKey(keys.sendgrid);
 
 // Controllers
 let DisqAuth = require("./controllers/DisqAuth")
 let DisqSURL = require("./controllers/DisqSURL")
+
+// Rate limits
+let accountLimiter = new RateLimit({ windowMs: 10000, max: 2 });
+disq.use("/auth/login", accountLimiter)
+disq.use("/auth/register", accountLimiter)
 
 // Endpoints
 disq.get('/', (req, res) => res.json({ "success": true }))

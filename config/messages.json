@@ -13,7 +13,9 @@
         "accountNotExist": "Account does not exist",
         "invalidToken": "Invalid auth token",
         "accountDisabled": "Your account has been disabled ⚆ _ ⚆",
-        "needVerifyEmail": "Please verify your email."
+        "needVerifyEmail": "Please verify your email.",
+        "noCaptcha": "Please complete the captcha!",
+        "invalidCaptcha": "The server rejected your captcha response"
     },
     "surl": {
         "noUrl": "No URL to shorten was provided",

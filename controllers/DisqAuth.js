@@ -99,6 +99,7 @@ auth.register = async (req, res) => {
 auth.verifyEmail = async (req, res) => {
     let code = req.body.emailToken
     if(!code) return res.status(400).json({ success: false, description: msg.auth.invalidEmailToken })
+    if(!req.body.captcha) return res.status(400).json({ success: false, description: msg.auth.noCaptcha })
 
     let user = await User.findOne({
         where: {
@@ -106,13 +107,17 @@ auth.verifyEmail = async (req, res) => {
         }
     })
 
-    if(!user) return res.status(404).json({ success: false, description: msg.auth.invalidEmailToken })
+    if(!user) return res.status(401).json({ success: false, description: msg.auth.invalidEmailToken })
     if(user.emailVerifyCode != code) return res.status(401).json({ success: false, description: msg.auth.invalidEmailToken })
     
-    user.emailVerified = true;
-    await user.save()
-
-    res.json({ success: true })
+    recaptcha.verify(async (success, error_code) => {
+        if(!success) return res.status(401).json({ success: false, description: msg.auth.invalidCaptcha })
+            
+        user.emailVerified = true;
+        await user.save()
+    
+        res.json({ success: true })
+    })
 
 }
 
@@ -126,8 +131,8 @@ auth.checkToken = async (req, res) => {
     
     const user = await User.findOne({ where: { token: token }})
     if(!user) return res.status(401).json({ success: false, description: msg.auth.invalidToken })
-    if(!user.enabled) return res.status(401).json({ success: false, description: msg.auth.accountDisabled })
-    if(!user.emailVerified) return res.status(401).json({ success: false, description: msg.auth.needVerifyEmail, emailVerify: true })
+    if(!user.enabled) return res.status(401).json({ success: false, description: msg.auth.accountDisabled, accountDisabled: true})
+    if(!user.emailVerified) return res.status(401).json({ success: false, description: msg.auth.needVerifyEmail, emailVerify: true, email: user.email })
     res.json({
         success: true,
         user: {
