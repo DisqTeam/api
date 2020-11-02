@@ -10,6 +10,8 @@ exports.SUrl = db.define('shorturls', {
 
 exports.File = db.define('files', { 
     userId: Sequelize.BIGINT,
+    name: Sequelize.STRING,
+    original: Sequelize.STRING,
     type: Sequelize.STRING,
     size: Sequelize.STRING,
     hash: Sequelize.STRING,

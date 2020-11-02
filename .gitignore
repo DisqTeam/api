@@ -1,6 +1,8 @@
 # disq
 config/db.json
 config/keys.json
+files/*
+uploads/*
 
 # Logs
 logs

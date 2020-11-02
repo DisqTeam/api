@@ -1,10 +1,13 @@
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
+const keys = require("../config/keys.json")
 const { User } = require("../db/models")
+const utils = require("./DisqUtils")
 
 const validator = require('validator')
 const randomstring = require("randomstring")
 const bcrypt = require("bcryptjs")
+const fetch = require("node-fetch")
 const sendgrid = require('@sendgrid/mail');
 
 const auth = {}
@@ -110,15 +113,19 @@ auth.verifyEmail = async (req, res) => {
     if(!user) return res.status(401).json({ success: false, description: msg.auth.invalidEmailToken })
     if(user.emailVerifyCode != code) return res.status(401).json({ success: false, description: msg.auth.invalidEmailToken })
     
-    recaptcha.verify(async (success, error_code) => {
-        if(!success) return res.status(401).json({ success: false, description: msg.auth.invalidCaptcha })
+    // Recaptcha verification
+    fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${keys.recaptcha.private}&response=${req.body.captcha}`, {
+        method: "POST"
+    })
+    .then(res => res.json())
+    .then(async rcp => {
+        if(!rcp.success) return res.status(401).json({ success: false, description: msg.auth.invalidCaptcha })
             
         user.emailVerified = true;
         await user.save()
     
         res.json({ success: true })
     })
-
 }
 
 auth.changePassword = async (req, res) => {
@@ -141,6 +148,28 @@ auth.checkToken = async (req, res) => {
             verified: user.verified
         }
     })
+}
+
+auth.resendVerification = async (req, res) => {
+    // Manual DisqUtils.authorize bc the flow is a little different
+    const token = req.headers.token;
+    if (token === undefined) return res.status(401).json({ success: false, description: msg.auth.noAuth });
+    const user = await User.findOne({ where: { token: token }})
+    if(!user) return res.status(401).json({ success: false, description: msg.auth.invalidToken })
+    if(!user.enabled) return res.status(401).json({ success: false, description: msg.auth.accountDisabled })
+
+    sendgrid
+        .send({
+            to: user.email,
+            from: config.email.from,
+            templateId: config.email.templates.verification,
+            dynamicTemplateData: {
+                username: user.username,
+                verifyUrl: `${config.domain}/verifyEmail?t=${user.emailVerifyCode}`
+            }
+        })
+
+    res.json({ success: true })
 }
 
 module.exports = auth;
