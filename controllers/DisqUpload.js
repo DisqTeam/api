@@ -100,7 +100,7 @@ files.create = async (req, res) => {
 						// Process for display
 						let basedomain = config.domain;
 
-						// Custom domain support for now
+						// Custom domain support for now 
 						if (req.get('DisqUploadDomain')) {
 							basedomain = req.get('DisqUploadDomain');
 						}

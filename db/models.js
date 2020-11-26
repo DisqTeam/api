@@ -8,7 +8,7 @@ exports.SUrl = db.define('shorturls', {
     timestamp: Sequelize.DATE
 });
 
-exports.File = db.define('files', { 
+exports.File = db.define('files', {
     userId: Sequelize.BIGINT,
     name: Sequelize.STRING,
     original: Sequelize.STRING,
@@ -21,6 +21,7 @@ exports.File = db.define('files', {
 exports.User = db.define('users', { 
     userId: Sequelize.BIGINT,
     enabled: Sequelize.BOOLEAN,
+    pfp: Sequelize.STRING,
 
     // info
     email: Sequelize.STRING,

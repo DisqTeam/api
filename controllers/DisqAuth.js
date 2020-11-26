@@ -69,6 +69,7 @@ auth.register = async (req, res) => {
         let newUser = User.build({
             userId,
             enabled: true,
+            pfp: "/avatars/default.png",
             email: validator.escape(req.body.email),
             username: validator.escape(req.body.username),
             password: hash,
