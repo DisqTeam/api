@@ -15,7 +15,11 @@
         "accountDisabled": "Your account has been disabled ⚆ _ ⚆",
         "needVerifyEmail": "Please verify your email.",
         "noCaptcha": "Please complete the captcha!",
-        "invalidCaptcha": "The server rejected your captcha response"
+        "invalidCaptcha": "The server rejected your captcha response",
+        "oauth": {
+            "noCode": "No OAuth2 Code specified.",
+            "noRedirect": "No OAuth2 Redirect URI specified"
+        }
     },
     "surl": {
         "noUrl": "No URL to shorten was provided",
@@ -25,9 +29,17 @@
         "invalidUrl": "Invalid url provided",
         "notFound": "That Short URL was not found"
     },
+    "files": {
+        "nofile": "No file uploaded!",
+        "nofilename": "No filename specified!",
+        "noPermissionDelete": "You do not have permission to delete this file",
+        "notFound": "That file was not found",
+        "invalidPage": "Invalid page"
+    },
     "error": {
         "hashError": "Error generating password hash (ಥ﹏ಥ)",
-        "genericError": "An error occured trying to complete that action!"
+        "genericError": "An error occured trying to complete that action!",
+        "permissionError": "You do not have permission to access this."
     },
     "other": {
         "gilbert": "gilbert"
