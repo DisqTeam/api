@@ -3,6 +3,7 @@ config/db.json
 config/keys.json
 files/*
 uploads/*
+scripts
 
 # Logs
 logs

@@ -31,7 +31,9 @@ surl.create = async (req, res) => {
     if(isTaken) sc = randomstring.generate(5);
 
     if(sc === req.body.shortCode && !auth.administrator) return res.status(401).json({ success: false, description: msg.surl.noPermissionCustom })
-    if(!validator.isURL(url)) return res.status(400).json({ success: false, description: msg.surl.invalidUrl })
+    if(!validator.isURL(url, {
+        require_valid_protocol: true
+    })) return res.status(400).json({ success: false, description: msg.surl.invalidUrl })
 
     let newSurl = SUrl.build({
         userId: auth.userId,
