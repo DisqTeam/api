@@ -12,7 +12,10 @@ const surl = {}
 
 surl.get = async (req, res) => {
     if(!req.body.shortCode) return res.status(400).json({ success: false, description: msg.surl.noShortcode })
-    let short = await SUrl.findOne({ where: { shortcode: req.body.shortCode }})
+    let short = await SUrl.findOne({ 
+        where: { shortcode: req.body.shortCode },
+        attributes: ['shortcode', 'url']
+    })
     if(!short) return res.status(400).json({ success: false, description: msg.surl.notFound })
     res.json({ success: true, short })
 }
@@ -38,11 +41,12 @@ surl.create = async (req, res) => {
     let newSurl = SUrl.build({
         userId: auth.userId,
         shortcode: sc,
-        url,
+        url: req.body.url,
         timestamp: new Date().getTime()
     })
 
     await newSurl.save()
+    console.log(`[Surl] ${auth.username} (${auth.userId}) created /s/${newSurl.sc}`)
     res.json({ success: true, url: `${config.domain}/s/${sc}` })
 }
 
@@ -77,6 +81,7 @@ surl.delete = async (req, res) => {
             shortcode: req.body.shortCode
         }
     });
+    console.log(`[Surl] ${auth.username} (${auth.userId}) deleted ${req.body.shortCode}`)
     res.json({ success: true })
 }
 
