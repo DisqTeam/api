@@ -44,10 +44,10 @@ admin.verifyUser = async (req, res) => {
     if(!user.userId) return res.status(400).json({ success: false, description: "User dosen't exist" })
 
     if(user.verified){
-        console.log(`[Admin] ${user.username} (${user.userId}) was verified by ${auth.username} (${auth.userId})`)
+        console.log(`[Admin] ${user.username} (${user.userId}) was un-verified by ${auth.username} (${auth.userId})`)
         user.verified = false;
     } else {
-        console.log(`[Admin] ${user.username} (${user.userId}) was un-verified by ${auth.username} (${auth.userId})`)
+        console.log(`[Admin] ${user.username} (${user.userId}) was verified by ${auth.username} (${auth.userId})`)
         user.verified = true;
     }
     await user.save()

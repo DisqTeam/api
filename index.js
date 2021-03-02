@@ -47,9 +47,10 @@ disq.use("/auth/resendEmail", accountLimiter)
 // Endpoints
 disq.get('/', (req, res) => res.json({ "success": true }))
 disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
-disq.post('/auth/register', (req, res) => DisqAuth.register(req, res))
-disq.post('/auth/verifyEmail', (req, res) => DisqAuth.verifyEmail(req, res))
-disq.get('/auth/resendEmail', (req, res) => DisqAuth.resendVerification(req, res))
+disq.get('/auth/newToken', (req, res) => DisqAuth.newToken(req, res))
+// disq.post('/auth/register', (req, res) => DisqAuth.register(req, res))
+// disq.post('/auth/verifyEmail', (req, res) => DisqAuth.verifyEmail(req, res))
+// disq.get('/auth/resendEmail', (req, res) => DisqAuth.resendVerification(req, res))
 
 disq.post('/users/me', (req, res) => DisqAuth.checkToken(req, res))
 disq.get('/users/list/:page', (req, res, next) => DisqAdmin.listUsers(req, res, next));

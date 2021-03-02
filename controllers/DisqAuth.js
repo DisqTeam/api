@@ -46,7 +46,7 @@ auth.login = async (req, res) => {
         exists.discordId = info.id;
         exists.email = info.email;
         exists.username = `${info.username}#${info.discriminator}`
-        exists.avatar = `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}`
+        exists.avatar = `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.png`
 
         await exists.save()
         res.json({ success: true, token: exists.token })
@@ -62,7 +62,7 @@ auth.login = async (req, res) => {
             discordId: info.id,
             email: info.email,
             username: `${info.username}#${info.discriminator}`,
-            avatar: `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}`,
+            avatar: `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.png`,
 
             token,
             timestamp,
@@ -93,6 +93,19 @@ auth.checkToken = async (req, res) => {
                 verified: user.verified
             }
         }
+    })
+}
+
+auth.newToken = async (req, res) => {
+    let auth = await utils.authorize(req, res)
+    
+    const newToken = randomstring.generate(64);
+    auth.token = newToken;
+    await auth.save();
+    
+    res.json({
+        success: true,
+        token: newToken
     })
 }
 
