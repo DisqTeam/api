@@ -1,3 +1,4 @@
+const { Op } = require("sequelize")
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
 const { File } = require("../db/models")
@@ -80,19 +81,39 @@ files.list = async (req, res) => {
 
     let offset = req.params.page;
     if (offset === undefined) offset = 0;
-
     if(offset < 0) return res.status(400).json({success: false, description: msg.files.invalidPage})
+
+    if(req.query.order){
+        if(req.query.order != "name" && req.query.order != "timestamp" && req.query.order != "size") return res.status(400).json({success: false, description: msg.error.genericError})
+        if(req.query.order_direction != "DESC" && req.query.order_direction != "ASC") return res.status(400).json({success: false, description: msg.error.genericError})
+    }
     
-    let files = await File.findAll({ 
+    let options = { 
         where: { userId: auth.userId },
         limit: 25,
         order: [
-            ['timestamp', 'DESC']
+            [req.query.order, req.query.order_direction]
         ],
         attributes: ['name', 'size', 'timestamp', 'type'],
         offset: 25 * offset
-    })
-    res.json({ success: true, files })
+    }
+
+    let allFiles = await File.count({ where: {userId: auth.userId}})
+
+    if(req.query.filter){
+        let filterQuery = {
+            userId: auth.userId,
+            name: {
+                [Op.like]: '%' + req.query.filter + '%'
+            }
+        }
+        options.where = filterQuery
+        allFiles = await File.count({ where: filterQuery })
+    }
+
+    let pageCount = Math.floor(allFiles / 25)
+    let files = await File.findAll(options)
+    res.json({ success: true, files, pages: pageCount })
 }
 
 files.delete = async (req, res) => {
