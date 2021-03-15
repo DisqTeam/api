@@ -45,7 +45,7 @@ disq.use("/auth/register", accountLimiter)
 disq.use("/auth/resendEmail", accountLimiter)
 
 // Endpoints
-disq.get('/', (req, res) => res.json({ "success": true }))
+disq.get('/', (req, res) => res.redirect("https://www.youtube.com/watch?v=6ov7LXBJy4g"))
 disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
 disq.get('/auth/newToken', (req, res) => DisqAuth.newToken(req, res))
 // disq.post('/auth/register', (req, res) => DisqAuth.register(req, res))
