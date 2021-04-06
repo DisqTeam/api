@@ -4,13 +4,16 @@ const path = require("path")
 
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
+const keys = require("../config/keys.json")
 const { User } = require("../db/models")
+
+const stripe = require('stripe')(keys.stripe.key);
 
 const utils = {}
 utils.multer = {}
 
-utils.authorize = async (req, res) => {
-    const token = req.headers.token;
+utils.authorize = async (req, res, token) => {
+    if(!token) token = req.headers.token;
     if (token === undefined) return res.status(401).json({ success: false, description: msg.auth.noAuth });
     
     const user = await User.findOne({ where: { token: token }})
@@ -19,16 +22,17 @@ utils.authorize = async (req, res) => {
     return user;
 }
 
-utils.multer.storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, config.uploads.folder);
-    },
-    filename: function(req, file, cb) {
-        const fileId = randomstring.generate({
-            length: 5,
-        }).toString()
+utils.getStripeCustomer = async (user) => {
+    let customer;
 
-        cb(null, fileId + path.extname(file.originalname));
+    if(!user.stripeId) {
+        customer = await stripe.customers.create({ email: user.email });
+        user.stripeId = customer.id
+        await user.save();
+    } else {
+        customer = await stripe.customers.retrieve(user.stripeId);
     }
-});
+
+    return customer;
+}
 module.exports = utils;

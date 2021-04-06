@@ -17,15 +17,21 @@ const files = {}
 const uploadDir = path.join(__dirname, '..', config.uploads.folder);
 
 files.create = async (req, res) => {
-    let auth = await utils.authorize(req, res)
-    if(!auth.token) {
-        files.deleteFile(req.file.filename)
-        return;
+    let auth;
+
+    if(req.params.service && req.params.service === "nx"){
+        auth = await utils.authorize(req, res, req.params.token)
+    } else {
+        auth = await utils.authorize(req, res)
     }
 
 	if(!req.file) {
-        files.deleteFile(req.file.filename)
         return res.status(400).json({ success: false, description: msg.files.nofile})
+    }
+
+    if(!auth.token) {
+        files.deleteFile(req.file.filename)
+        return;
     }
     
     let base;
@@ -83,19 +89,20 @@ files.list = async (req, res) => {
     if (offset === undefined) offset = 0;
     if(offset < 0) return res.status(400).json({success: false, description: msg.files.invalidPage})
 
-    if(req.query.order){
-        if(req.query.order != "name" && req.query.order != "timestamp" && req.query.order != "size") return res.status(400).json({success: false, description: msg.error.genericError})
-        if(req.query.order_direction != "DESC" && req.query.order_direction != "ASC") return res.status(400).json({success: false, description: msg.error.genericError})
-    }
-    
     let options = { 
         where: { userId: auth.userId },
         limit: 25,
-        order: [
-            [req.query.order, req.query.order_direction]
-        ],
         attributes: ['name', 'size', 'timestamp', 'type'],
         offset: 25 * offset
+    }
+
+    if(req.query.order){
+        if(req.query.order != "name" && req.query.order != "timestamp" && req.query.order != "size") return res.status(400).json({success: false, description: msg.error.genericError})
+        if(req.query.order_direction != "DESC" && req.query.order_direction != "ASC") return res.status(400).json({success: false, description: msg.error.genericError})
+    
+        options.order = [
+                [req.query.order, req.query.order_direction]
+        ]
     }
 
     let allFiles = await File.count({ where: {userId: auth.userId}})
@@ -122,7 +129,7 @@ files.delete = async (req, res) => {
     if(!req.body.filename) return res.status(400).json({ success: false, description: msg.files.nofilename })
 
     let toDelete = await File.findOne({where: {name: req.body.filename}})
-    if(!toDelete.userId) return res.status(400).json({ success: false, description: msg.files.notFound })
+    if(!toDelete || !toDelete.userId) return res.status(400).json({ success: false, description: msg.files.notFound })
     if(toDelete.userId != auth.userId) return res.status(401).json({ success: false, description: msg.files.noPermissionDelete })
 
     files.deleteFile(toDelete.name)

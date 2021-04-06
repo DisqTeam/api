@@ -1,6 +1,7 @@
 {
     "port": 8415,
     "domain": "http://localhost:8415",
+    "site": "http://localhost:3000",
     "lengths": {
         "username": {
             "min": 4,

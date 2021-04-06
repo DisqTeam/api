@@ -38,7 +38,11 @@ exports.User = db.define('users', {
 
     // privileges
     verified: Sequelize.BOOLEAN,
-    administrator: Sequelize.BOOLEAN
+    administrator: Sequelize.BOOLEAN,
+
+    stripeId: Sequelize.STRING,
+    plusActive: Sequelize.BOOLEAN,
+    plusExpires: Sequelize.BIGINT
 });
 
 exports.LegacyUser = db.define('legacy_users', {
@@ -48,6 +52,23 @@ exports.LegacyUser = db.define('legacy_users', {
     enabled: Sequelize.BOOLEAN,
     timestamp: Sequelize.BIGINT,
 });
+
+exports.Profile = db.define('profile', {
+    userId: Sequelize.BIGINT,
+    enabled: Sequelize.BOOLEAN,
+    url: Sequelize.STRING,
+    bio: Sequelize.STRING,
+    banner: {
+        type: Sequelize.STRING,
+        defaultValue: "default.png"
+    }
+})
+
+exports.ProfileLink = db.define('profile_links', {
+    userId: Sequelize.BIGINT,
+    url: Sequelize.STRING,
+    username: Sequelize.STRING,
+})
 
 // Sync models to db
 db.sync({alter: true})
