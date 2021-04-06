@@ -62,8 +62,8 @@ disq.post('/uploads/delete', (req, res, next) => DisqUpload.delete(req, res, nex
 disq.post('/upload', upload.single('file'), (req, res, next) => DisqUpload.create(req, res, next));
 disq.post('/upload/:service/:token', upload.single('file'), (req, res, next) => DisqUpload.create(req, res, next));
 
-/* sorry kiddos, not yet */
 // disq.get('/subscription/session', (req, res, next) => DisqPlus.create(req, res, next));
+// disq.all('/subscription/webhook', (req, res, next) => DisqPlus.hookHandle(req, res, next));
 
 disq.post('/migrate', (req, res, next) => DisqLegacy.auth(req, res, next));
 disq.get('/stats', (req, res, next) => DisqAdmin.stats(req, res, next));

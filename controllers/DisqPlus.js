@@ -12,13 +12,6 @@ const stripe = require('stripe')(keys.stripe.key);
 
 const pay = {}
 
-/*
-  feel so clean like a money machine
-  feel so clean like a money machi-i-ine
-  feel so clean like a money machine
-  feel so clean like a money machi-i-ine
-*/
-
 pay.create = async (req, res) => {
     let auth = await utils.authorize(req, res)
     let customer = await utils.getStripeCustomer(auth)
@@ -36,6 +29,10 @@ pay.create = async (req, res) => {
     });
 
     res.json({ success: true, sess: session.id });
+}
+
+pay.hookHandle = async (req, res) => {
+  
 }
 
 module.exports = pay;

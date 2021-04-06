@@ -6,6 +6,10 @@ exports.SUrl = db.define('shorturls', {
     shortcode: Sequelize.STRING,
     url: Sequelize.STRING,
     timestamp: Sequelize.BIGINT,
+    vanity: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+    },
 
     legacyUserId: Sequelize.BIGINT
 });
@@ -32,17 +36,22 @@ exports.User = db.define('users', {
     username: Sequelize.STRING,
     avatar: Sequelize.STRING,
 
-    // sys
     token : Sequelize.STRING,
     timestamp: Sequelize.BIGINT,
 
-    // privileges
+    // flags
     verified: Sequelize.BOOLEAN,
     administrator: Sequelize.BOOLEAN,
 
+    // plus
     stripeId: Sequelize.STRING,
     plusActive: Sequelize.BOOLEAN,
-    plusExpires: Sequelize.BIGINT
+    plusExpires: Sequelize.BIGINT,
+
+    vanityCreated: {
+        type: Sequelize.BIGINT,
+        defaultValue: 0
+    },
 });
 
 exports.LegacyUser = db.define('legacy_users', {

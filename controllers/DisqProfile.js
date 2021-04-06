@@ -59,12 +59,14 @@ profile.edit = async (req, res) => {
     if(!req.body.bio || req.body.bio.length == 0) return res.status(400).json({ success: false, description: "You must specify a bio!"})
     if(req.body.bio.length > 240) return res.status(400).json({ success: false, description: "Bio must be less than 240 characters"})
 
+    const an = /((^[0-9]+[a-z]+)|(^[a-z]+[0-9]+))+[0-9a-z]+$/i;
     if(!req.body.code) return res.status(400).json({ success: false, description: "You must specify a URL code!"})
     if(blacklistedUrls.includes(req.body.code)) return res.status(400).json({ success: false, description: "The URL code you entered is blacklisted."})
     if(req.body.code.length > 20) return res.status(400).json({ success: false, description: "URL code must be 4-20 characters"})
     if(req.body.code.length < 4) return res.status(400).json({ success: false, description: "URL code must be 4-20 characters"})
+    if(!req.body.code.match(an)) return res.status(400).json({ success: false, description: "URL code must be alphanumeric"})
     
-    const codeExists = await Profile.findOne({where: { url: req.body.code, userId: {[Op.not]: auth.userId} } })
+    const codeExists = await Profile.findOne({where: { url: {[Op.iLike]: req.body.code}, userId: {[Op.not]: auth.userId} } })
     if(codeExists) return res.status(400).json({ success: false, description: "URL code is taken."})
 
     let profile = await Profile.findOrCreate({
