@@ -13,9 +13,7 @@ const { upload, banner } = require("./config/multer")
 const db = require("./db/db")
 disq.use(cors())
 disq.use(helmet());
-disq.use(express.json())
-disq.use(express.urlencoded({ extended: true }));
-disq.use(require('sanitize').middleware)
+disq.use(require('sanitize').middleware);
 disq.set('trust proxy', 1);
 
 // Misc Setup
@@ -36,7 +34,14 @@ let DisqProfile = require("./controllers/DisqProfile")
 let accountLimiter = new rateLimit({ windowMs: 10000, max: 30, message: {success: false, description: "You are being rate limited."} });
 disq.use("/auth/login", accountLimiter)
 
-// Endpoints
+
+// Raw Endpoints
+disq.all('/subscription/webhook', express.raw({ type: '*/*' }), (req, res, next) => DisqPlus.hookHandle(req, res, next));
+
+// JSON Endpoints
+disq.use(express.json())
+disq.use(express.urlencoded({ extended: true }));
+
 disq.get('/', (req, res) => res.redirect("https://www.youtube.com/watch?v=6ov7LXBJy4g"))
 disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
 disq.get('/auth/newToken', (req, res) => DisqAuth.newToken(req, res))
@@ -62,15 +67,15 @@ disq.post('/uploads/delete', (req, res, next) => DisqUpload.delete(req, res, nex
 disq.post('/upload', upload.single('file'), (req, res, next) => DisqUpload.create(req, res, next));
 disq.post('/upload/:service/:token', upload.single('file'), (req, res, next) => DisqUpload.create(req, res, next));
 
-// disq.get('/subscription/session', (req, res, next) => DisqPlus.create(req, res, next));
-// disq.all('/subscription/webhook', (req, res, next) => DisqPlus.hookHandle(req, res, next));
+disq.get('/subscription/session', (req, res, next) => DisqPlus.create(req, res, next));
+disq.get('/subscription/manage', (req, res, next) => DisqPlus.manage(req, res, next));
 
 disq.post('/migrate', (req, res, next) => DisqLegacy.auth(req, res, next));
 disq.get('/stats', (req, res, next) => DisqAdmin.stats(req, res, next));
 
 // Error Handler
 disq.use((err, req, res, next) => {
-    if(err.message == "File too large") return res.status(400).json({success: false, description: "File size is over 30MB"})
+    if(err.message == "File too large") return res.status(400).json({success: false, description: "File size is too big (30mib and 70mib)"})
     if(err.message == "File extension not allowed" || err.message == "File type not allowed" || err.message == "File extension not allowed (pngs and jpgs only please)")
         return res.status(400).json({success: false, description: err.message})
 
@@ -79,5 +84,5 @@ disq.use((err, req, res, next) => {
 })
 
 disq.listen(config.port, () => {
-    console.info("Disq API up.")
+    console.info(`Disq API up on ${config.port}.`)
 })

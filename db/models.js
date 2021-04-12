@@ -45,7 +45,10 @@ exports.User = db.define('users', {
 
     // plus
     stripeId: Sequelize.STRING,
-    plusActive: Sequelize.BOOLEAN,
+    plusActive: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+    },
     plusExpires: Sequelize.BIGINT,
 
     vanityCreated: {

@@ -23,14 +23,13 @@ const profile = {}
 
 profile.get = async (req, res) => {
     if(!req.params.code) return res.status(400).json({success: false, description: "No profilecode provided!"})
-    let profile = await Profile.findOne({where: { url: req.params.code }, attributes: ['enabled', 'url', 'bio', 'banner', 'userId'] })
+    let profile = await Profile.findOne({where: { url: {[Op.iLike]: req.params.code}, enabled: true }, attributes: ['enabled', 'url', 'bio', 'banner', 'userId'] })
     if(!profile) return res.status(400).send({success: false, description: "This profile does not exist"})
-    if(!profile.enabled) return res.status(400).send({success: false, description: "This profile does not exist"})
     
     let links = await ProfileLink.findAll({where: { userId: profile.userId}, attributes: ['url', 'username']})
-    let user = await User.findOne({where: { userId: profile.userId }, attributes: ['avatar', 'username', 'administrator', 'verified']})
+    let user = await User.findOne({where: { userId: profile.userId }, attributes: ['avatar', 'username', 'administrator', 'verified', "plusActive"]})
 
-    res.send({success: true, profile: {...profile.toJSON(), pfp: user.avatar, flags: {verified: user.verified}, username: user.username.split("#")[0], links}})
+    res.send({success: true, profile: {...profile.toJSON(), pfp: user.avatar, flags: {verified: user.verified, plus: user.plusActive}, username: user.username.split("#")[0], links}})
 }
 
 profile.me = async (req, res) => {
@@ -74,7 +73,7 @@ profile.edit = async (req, res) => {
         defaults: {
             userId: auth.userId,
             enabled: req.body.enabled,
-            url: req.body.code,
+            url: req.body.code.toLowerCase(),
             bio: req.body.bio
         }
     })

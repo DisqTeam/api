@@ -91,6 +91,11 @@ auth.checkToken = async (req, res) => {
             privileges: {
                 administrator: user.administrator,
                 verified: user.verified
+            },
+            plus: {
+                active: user.plusActive,
+                stripeId: user.stripeId,
+                expires: user.plusExpires
             }
         }
     })

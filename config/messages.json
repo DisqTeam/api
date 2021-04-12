@@ -24,7 +24,7 @@
     "surl": {
         "noUrl": "No URL to shorten was provided",
         "noShortcode": "No shortcode was provided",
-        "noPermissionCustom": "You do not have permission to create custom short urls",
+        "noPermissionCustom": "You need Disq Plus to create vanity short urls",
         "noPermissionDelete": "You do not have permission to delete this short url",
         "invalidUrl": "Invalid url provided",
         "notFound": "That Short URL was not found"

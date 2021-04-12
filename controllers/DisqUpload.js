@@ -33,6 +33,11 @@ files.create = async (req, res) => {
         files.deleteFile(req.file.filename)
         return;
     }
+
+    if(req.file.size > 31457280 && !auth.plusActive){
+        files.deleteFile(req.file.filename)
+        return res.status(400).json({ success: false, description: "File is over 30MB. Upgrade to Plus to upload up to 70MB"})
+    }
     
     let base;
     if(!req.headers.url) base = "https://disq.me"

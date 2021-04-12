@@ -25,15 +25,17 @@ surl.create = async (req, res) => {
 
     if(!req.body.url) return res.status(400).json({ success: false, description: msg.surl.noUrl })
     let url = atob(req.body.url)
-    let sc = req.body.shortCode
+    let sc = req.body.shortCode.toLowerCase()
 
     if(!url) return res.status(400).json({ success: false, description: msg.surl.noUrl })
     if(!sc) sc = randomstring.generate(5);
 
     let isTaken = await SUrl.findOne({ where: { shortcode: sc } })
-    if(isTaken) sc = randomstring.generate(5);
+    if(isTaken) return res.status(401).json({ success: false, description: "That shortcode is taken." })
 
-    if(sc === req.body.shortCode && !auth.administrator) return res.status(401).json({ success: false, description: msg.surl.noPermissionCustom })
+    if(sc === req.body.shortCode && !auth.plusActive) return res.status(401).json({ success: false, description: msg.surl.noPermissionCustom })
+    if(auth.plusActive && !auth.administrator && auth.vanityCreated > 2) return res.status(401).json({ success: false, description: "You already have 3 vanity URLs. Please delete one to make space" })
+    
     if(!validator.isURL(url, {
         require_valid_protocol: true
     })) return res.status(400).json({ success: false, description: msg.surl.invalidUrl })
@@ -42,11 +44,17 @@ surl.create = async (req, res) => {
         userId: auth.userId,
         shortcode: sc,
         url: req.body.url,
+        vanity: (sc === req.body.shortCode),
         timestamp: new Date().getTime()
     })
-
     await newSurl.save()
-    console.log(`[Surl] ${auth.username} (${auth.userId}) created /s/${newSurl.sc}`)
+
+    if(newSurl.vanity) {
+        auth.vanityCreated++;
+        await auth.save()
+    }
+
+    console.log(`[Surl] ${auth.username} (${auth.userId}) created /s/${newSurl.shortcode}`)
     res.json({ success: true, url: `${config.domain}/s/${sc}` })
 }
 
@@ -55,6 +63,7 @@ surl.list = async (req, res) => {
 
     let offset = req.params.page;
     if (offset === undefined) offset = 0;
+    if (offset < 0) offset = 0;
     
     let shorts = await SUrl.findAll({ 
         where: { userId: auth.userId },
@@ -64,7 +73,11 @@ surl.list = async (req, res) => {
         ],
         offset: 25 * offset
     })
-    res.json({ success: true, shorts })
+
+    let allShorts = await SUrl.count({ where: {userId: auth.userId}})
+    let pageCount = Math.floor(allShorts / 25)
+
+    res.json({ success: true, shorts, pages: pageCount })
 }
 
 surl.delete = async (req, res) => {
@@ -75,6 +88,11 @@ surl.delete = async (req, res) => {
     let toDelete = await SUrl.findOne({where: {shortcode: req.body.shortCode}})
     if(!toDelete) return res.status(400).json({ success: false, description: msg.surl.notFound })
     if(toDelete.userId != auth.userId) return res.status(401).json({ success: false, description: msg.surl.noPermissionDelete })
+
+    if(toDelete.vanity){
+        auth.vanityCreated--;
+        await auth.save()
+    }
 
     await SUrl.destroy({
         where: {

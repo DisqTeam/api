@@ -27,9 +27,12 @@ let bannerStorage = multer.diskStorage({
 const bannerExt = [ ".png", ".jpg", ".jpeg" ]
 const bannerTypes = [ "image/png", "image/jpeg" ]
 
+// 31457280 = 30MiB
+// 73400000 = 70MiB
+
 exports.upload = multer({
     storage: uploadStorage,
-    limits: { fileSize: 31457280 },
+    limits: { fileSize: 73400000 },
     fileFilter: (req, file, cb) => {
         const fileExt = path.extname(file.originalname).toLowerCase()
         if(config.blockedExtensions.includes(fileExt)){
