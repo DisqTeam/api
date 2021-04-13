@@ -19,14 +19,22 @@ admin.listUsers = async (req, res) => {
     let offset = req.params.page;
     if (offset === undefined) offset = 0;
     
-    let users = await User.findAll({ 
+    let options = { 
         limit: 25,
         order: [
             ['id', 'DESC']
         ],
         offset: 25 * offset,
         attributes: ['enabled', 'username', 'userId', 'discordId', 'avatar', 'timestamp', 'verified']
-    })
+    }
+
+    if(req.query.plusOnly) {
+        options.where = {
+            plusActive: true
+        }
+    }
+
+    let users = await User.findAll(options)
 
     res.json({ success: true, users })
 }
