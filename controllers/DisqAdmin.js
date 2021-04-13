@@ -25,7 +25,8 @@ admin.listUsers = async (req, res) => {
             ['id', 'DESC']
         ],
         offset: 25 * offset,
-        attributes: ['enabled', 'username', 'userId', 'discordId', 'avatar', 'timestamp', 'verified']
+        attributes: ['enabled', 'username', 'userId', 'discordId', 'avatar', 'timestamp', 'verified'],
+        where: {}
     }
 
     if(req.query.plusOnly) {
@@ -34,9 +35,11 @@ admin.listUsers = async (req, res) => {
         }
     }
 
+    let count = await User.count({ where: options.where})
+    count =  Math.floor(count / 25)
     let users = await User.findAll(options)
 
-    res.json({ success: true, users })
+    res.json({ success: true, users, pages: count })
 }
 
 admin.verifyUser = async (req, res) => {
