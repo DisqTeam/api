@@ -4,10 +4,9 @@ const path = require("path")
 
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
-const keys = require("../config/keys.json")
 const { User } = require("../db/models")
 
-const stripe = require('stripe')(keys.stripe.key);
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const utils = {}
 utils.multer = {}

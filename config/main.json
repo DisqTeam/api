@@ -40,7 +40,7 @@
     ],
     "uploads": {
         "maxSize": "20MB",
-        "folder": "files",
+        "folder": "D:\\Documents\\Programming\\Node.js\\Disq\\DisqAPI\\files",
         "fileLength": 5
     }
 }

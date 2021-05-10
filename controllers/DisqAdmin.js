@@ -1,6 +1,6 @@
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
-const { User, File, SUrl } = require("../db/models")
+const { User, File, SUrl, Profile } = require("../db/models")
 
 const os = require("os")
 const disk = require('diskusage');
@@ -25,7 +25,9 @@ admin.listUsers = async (req, res) => {
             ['id', 'DESC']
         ],
         offset: 25 * offset,
-        attributes: ['enabled', 'username', 'userId', 'discordId', 'avatar', 'timestamp', 'verified'],
+        attributes: {
+            exclude: ['token']
+        },
         where: {}
     }
 
@@ -37,9 +39,21 @@ admin.listUsers = async (req, res) => {
 
     let count = await User.count({ where: options.where})
     count =  Math.floor(count / 25)
-    let users = await User.findAll(options)
 
-    res.json({ success: true, users, pages: count })
+    let _users = await User.findAll(options)
+    let users = []
+
+    try {
+        for(let i = 0; i < _users.length; i++){
+            const u = _users[i]
+            if(u.userId){
+                const linkpage = await Profile.findOne({where: {userId: u.userId}})
+                users.push({...u.dataValues, linkpage})
+            } else users.push({...u.dataValues})
+        }
+    } finally {
+        res.json({ success: true, users, pages: count })
+    }
 }
 
 admin.verifyUser = async (req, res) => {

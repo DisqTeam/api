@@ -4,11 +4,11 @@ const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const helmet = require("helmet");
 const disq = express()
+require('dotenv').config()
 require('better-logging')(console);
 
 // Configuration + DB
 const config = require("./config/main.json")
-const keys = require("./config/keys.json")
 const { upload, banner } = require("./config/multer")
 const db = require("./db/db")
 disq.use(cors())
@@ -18,8 +18,10 @@ disq.set('trust proxy', 1);
 
 // Misc Setup
 if (!fs.existsSync(`${config.uploads.folder}/banners`)) fs.mkdirSync(`${config.uploads.folder}/banners`)
+if (!fs.existsSync(`${config.uploads.folder}/avatars`)) fs.mkdirSync(`${config.uploads.folder}/avatars`)
 
 disq.use("/banners", express.static(`${config.uploads.folder}/banners`))
+disq.use("/avatars", express.static(`${config.uploads.folder}/avatars`))
 
 // Controllers
 let DisqAuth = require("./controllers/DisqAuth")
@@ -29,6 +31,8 @@ let DisqLegacy = require("./controllers/DisqLegacy")
 let DisqAdmin = require("./controllers/DisqAdmin")
 let DisqPlus = require("./controllers/DisqPlus")
 let DisqProfile = require("./controllers/DisqProfile")
+
+let AuthTwt = require("./controllers/thirdparty/Twitter");
 
 // Rate limits
 let accountLimiter = new rateLimit({ windowMs: 10000, max: 30, message: {success: false, description: "You are being rate limited."} });
@@ -43,7 +47,9 @@ disq.use(express.json())
 disq.use(express.urlencoded({ extended: true }));
 
 disq.get('/', (req, res) => res.redirect("https://www.youtube.com/watch?v=6ov7LXBJy4g"))
+
 disq.post('/auth/login', (req, res) => DisqAuth.login(req, res))
+disq.get('/auth/twitter/setup', (req, res) => AuthTwt.getUrl(req, res))
 disq.get('/auth/newToken', (req, res) => DisqAuth.newToken(req, res))
 
 disq.post('/users/me', (req, res) => DisqAuth.checkToken(req, res))

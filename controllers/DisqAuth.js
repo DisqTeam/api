@@ -1,117 +1,204 @@
-const msg = require("../config/messages.json")
-const config = require("../config/main.json")
-const keys = require("../config/keys.json")
-const { User } = require("../db/models")
-const utils = require("./DisqUtils")
+const msg = require("../config/messages.json");
+const config = require("../config/main.json");
+const { User } = require("../db/models");
+const utils = require("./DisqUtils");
 
-const validator = require('validator')
-const randomstring = require("randomstring")
-const bcrypt = require("bcryptjs")
-const fetch = require("node-fetch")
-const queryString = require('querystring')
-const dayjs = require("dayjs")
+const fs = require("fs");
+const randomstring = require("randomstring");
+const fetch = require("node-fetch");
+const dayjs = require("dayjs");
+const path = require("path");
 
-const auth = {}
+const Discord = require("./thirdparty/Discord");
+const Twitter = require("./thirdparty/Twitter");
+const Github = require("./thirdparty/Github");
+const { Op } = require("sequelize");
+
+const auth = {};
 auth.login = async (req, res) => {
-    if(!req.body.redirect) return res.status(400).json({ success: false, description: msg.auth.oauth.noRedirect })
+  if(!req.body.provider) return res.status(400).json({ success: false, description: "No auth provider!" });
 
-    const discordRes = await fetch(`https://discord.com/api/v8/oauth2/token`, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: queryString.stringify({
-            "code": req.body.code,
-            "client_id": keys.discord.id,
-            "client_secret": keys.discord.secret,
-            "redirect_uri": req.body.redirect,
-            "scope": "email identify",
-            "grant_type": "authorization_code"
-        })
-    })
-    const disc = await discordRes.json()
-    if(disc.error) return res.status(400).json({ success: false, description: disc.error })
+  let info;
 
-    const infoRes = await fetch("https://discord.com/api/v8/users/@me", {
-        headers: { "Authorization": `${disc.token_type} ${disc.access_token}` }
-    })
-    const info = await infoRes.json()
+  switch(req.body.provider) {
+    case "discord":
+      try { info = await Discord.handle(req, res) } 
+      catch(err) { return res.status(400).json({ success: false, description: err }) }
+      break;
+    case "twitter":
+      try { info = await Twitter.handle(req, res) } 
+      catch(err) { return res.status(400).json({ success: false, description: err }) }
+      break;
+    case "github":
+      try { info = await Github.handle(req, res) } 
+      catch(err) { return res.status(400).json({ success: false, description: err }) }
+      break;
+    default: 
+      return res.status(400).json({ success: false, description: "Invalid auth provider" });
+  }
 
-    if(info.error) return res.status(400).json({ success: false, description: disc.error })
-    if(!info.verified) return res.status(400).json({ success: false, description: msg.auth.needVerifyEmail, emailVerify: true })
+  if (!info) return res.status(400).json({ success: false, description: "An error was occured when authenticating you!" });
 
-    let exists = await User.findOne({ where: { discordId: info.id } })
+  if (info.error) return res.status(400).json({ success: false, description: disc.error });
+  if (!info.verified) return res.status(400).json({ success: false, description: msg.auth.needVerifyEmail, emailVerify: true});
 
-    if(exists) {
-        if(!exists.enabled) return res.status(403).json({ success: false, description: msg.auth.accountDisabled })
+  const id_str = info.id.toString()
+  let exists = await User.findOne({ where: {
+    [Op.or]: [
+      { discordId: id_str },
+      { twitterId: id_str },
+      { githubId: id_str },
+    ]
+  }});
 
-        exists.discordId = info.id;
-        exists.email = info.email;
-        exists.username = `${info.username}#${info.discriminator}`
-        exists.avatar = `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.png`
+  if (exists) {
+    if (!exists.enabled)
+      return res
+        .status(403)
+        .json({ success: false, description: msg.auth.accountDisabled });
 
-        await exists.save()
-        res.json({ success: true, token: exists.token })
+    let avatar;
+    if (info.avatar) {
+      avatar = await auth.cacheAvatar(info.avatar, exists.userId);
     } else {
-        const userId = randomstring.generate({ length: 18, charset: "numeric" }).toString();
-        const token = randomstring.generate(64);
-        const timestamp = dayjs().unix();
-
-        let newUser = User.build({
-            userId,
-            enabled: true,
-
-            discordId: info.id,
-            email: info.email,
-            username: `${info.username}#${info.discriminator}`,
-            avatar: `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.png`,
-
-            token,
-            timestamp,
-
-            verified: false,
-            administrator: false,
-        })
-
-        await newUser.save();
-        res.json({ success: true, token, onboarding: true })
+      avatar = `${config.domain}/avatars/default.png`;
     }
-}
+
+    if(exists.provider === req.body.provider) {
+      exists.email = info.email;
+      exists.username = info.username;
+      exists.avatar = avatar;
+    }
+
+    await exists.save();
+    res.json({ success: true, token: exists.token });
+  } else {
+    const userId = randomstring
+      .generate({ length: 18, charset: "numeric" })
+      .toString();
+    const token = randomstring.generate(64);
+    const timestamp = dayjs().unix();
+
+    let avatar;
+    if (info.avatar) {
+      avatar = await auth.cacheAvatar(info.avatar, userId);
+    } else {
+      avatar = `${config.domain}/avatars/default.png`;
+    }
+
+    let newUser = User.build({
+      userId,
+      enabled: true,
+      
+      provider: req.body.provider,
+
+      email: info.email,
+      username: info.username,
+      avatar,
+
+      token,
+      timestamp,
+
+      verified: false,
+      administrator: false,
+    });
+
+    switch(req.body.provider) {
+      case "discord":
+        newUser.discordId = id_str
+      
+      case "twitter":
+        newUser.twitterId = id_str
+
+      case "github":
+        newUser.githubId = id_str
+    }
+
+    await newUser.save();
+    res.json({ success: true, token, onboarding: true });
+  }
+};
+
+
+auth.cacheAvatar = async (url, hash) => {
+  console.log(url);
+  try {
+    const _pfp = await fetch(url);
+
+    const filePath = path.join(
+      `${config.uploads.folder}`,
+      "avatars",
+      hash + ".png"
+    );
+
+    await new Promise((resolve, reject) => {
+      const filestream = fs.createWriteStream(filePath, { flags: "w" });
+      _pfp.body.pipe(filestream);
+      _pfp.body.on("error", () => {
+        reject(true);
+      });
+      filestream.on("finish", () => {
+        resolve(true);
+      });
+    });
+    return `${config.domain}/avatars/${hash}.png`;
+  } catch (err) {
+    console.log(err);
+    return `${config.domain}/avatars/default.png`;
+  }
+};
 
 auth.checkToken = async (req, res) => {
-    const token = req.headers.token;
-    if (token === undefined) return res.status(401).json({ success: false, description: msg.auth.noAuth });
-    
-    const user = await User.findOne({ where: { token: token }})
-    if(!user) return res.status(401).json({ success: false, description: msg.auth.invalidToken })
-    if(!user.enabled) return res.status(401).json({ success: false, description: msg.auth.accountDisabled, accountDisabled: true})
-    res.json({
-        success: true,
-        user: {
-            username: user.username,
-            avatar: user.avatar,
-            privileges: {
-                administrator: user.administrator,
-                verified: user.verified
-            },
-            plus: {
-                active: user.plusActive,
-                stripeId: user.stripeId,
-                expires: user.plusExpires
-            }
-        }
-    })
-}
+  const token = req.headers.token;
+  if (token === undefined)
+    return res
+      .status(401)
+      .json({ success: false, description: msg.auth.noAuth });
+
+  const user = await User.findOne({ where: { token: token } });
+  if (!user)
+    return res
+      .status(401)
+      .json({ success: false, description: msg.auth.invalidToken });
+  if (!user.enabled)
+    return res
+      .status(401)
+      .json({
+        success: false,
+        description: msg.auth.accountDisabled,
+        accountDisabled: true,
+      });
+  res.json({
+    success: true,
+    user: {
+      id: user.userId,
+      username: user.username,
+      avatar: user.avatar,
+      privileges: {
+        administrator: user.administrator,
+        verified: user.verified,
+      },
+      plus: {
+        active: user.plusActive,
+        stripeId: user.stripeId,
+        expires: user.plusExpires,
+      },
+      authProvider: user.provider
+    },
+  });
+};
 
 auth.newToken = async (req, res) => {
-    let auth = await utils.authorize(req, res)
-    
-    const newToken = randomstring.generate(64);
-    auth.token = newToken;
-    await auth.save();
-    
-    res.json({
-        success: true,
-        token: newToken
-    })
-}
+  let auth = await utils.authorize(req, res);
+
+  const newToken = randomstring.generate(64);
+  auth.token = newToken;
+  await auth.save();
+
+  res.json({
+    success: true,
+    token: newToken,
+  });
+};
 
 module.exports = auth;

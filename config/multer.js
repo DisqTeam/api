@@ -9,7 +9,7 @@ let uploadStorage = multer.diskStorage({
     destination: function(req, file, cb) { cb(null, `${config.uploads.folder}`) },
     filename: function(req, file, cb) {
         const fileId = randomstring.generate({
-            length: 5,
+            length: 6,
         }).toString()
 
         cb(null, fileId + path.extname(file.originalname));

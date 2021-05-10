@@ -1,9 +1,8 @@
 const { Sequelize } = require('sequelize');
-const dbConfig = require("../config/db.json")
 
-const db = new Sequelize("disq", dbConfig.username, dbConfig.password, {
-    host: dbConfig.server,
-    port: dbConfig.port,
+const db = new Sequelize("disq", process.env.DB_USER, process.env.DB_PASS, {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
     logging: false,
     maxConcurrentQueries: 100,
     dialect: 'postgres',

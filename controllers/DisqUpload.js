@@ -77,9 +77,9 @@ files.create = async (req, res) => {
 files.deleteFile = (file) => {
 	const ext = path.extname(file).toLowerCase();
 	return new Promise((resolve, reject) => {
-		fs.stat(path.join(__dirname, '..', config.uploads.folder, file), (err, stats) => {
+		fs.stat(path.join(config.uploads.folder, file), (err, stats) => {
 			if (err) { return reject(err); }
-			fs.unlink(path.join(__dirname, '..', config.uploads.folder, file), err => {
+			fs.unlink(path.join(config.uploads.folder, file), err => {
 				if (err) { return reject(err); }
 				return resolve();
 			});

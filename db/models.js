@@ -30,8 +30,13 @@ exports.User = db.define('users', {
     userId: Sequelize.BIGINT,
     enabled: Sequelize.BOOLEAN,
 
-    // info
+    // auth
+    provider: Sequelize.STRING,
     discordId: Sequelize.STRING,
+    twitterId: Sequelize.STRING,
+    githubId: Sequelize.STRING,
+
+    // info
     email: Sequelize.STRING,
     username: Sequelize.STRING,
     avatar: Sequelize.STRING,

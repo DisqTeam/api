@@ -1,6 +1,5 @@
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
-const keys = require("../config/keys.json")
 const { SUrl, User } = require("../db/models")
 
 const validator = require('validator')
@@ -10,7 +9,7 @@ const randomstring = require("randomstring")
 const atob = require("atob")
 const btoa = require("btoa")
 const dayjs = require("dayjs")
-const stripe = require('stripe')(keys.stripe.key);
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const pay = {}
 
@@ -23,7 +22,7 @@ pay.create = async (req, res) => {
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [{
-          price: keys.stripe.price,
+          price: process.env.STRIPE_PRICE,
           quantity: 1,
         }],
         mode: 'subscription',
@@ -53,7 +52,7 @@ pay.hookHandle = async (req, res) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, keys.stripe.hook);
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_HOOK);
   }
   catch (err) {
     console.log(err)

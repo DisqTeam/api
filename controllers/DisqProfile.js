@@ -1,6 +1,5 @@
 const msg = require("../config/messages.json")
 const config = require("../config/main.json")
-const keys = require("../config/keys.json")
 const { Profile, ProfileLink, User } = require("../db/models")
 
 const path = require("path")
@@ -27,9 +26,9 @@ profile.get = async (req, res) => {
     if(!profile) return res.status(400).send({success: false, description: "This profile does not exist"})
     
     let links = await ProfileLink.findAll({where: { userId: profile.userId}, attributes: ['url', 'username']})
-    let user = await User.findOne({where: { userId: profile.userId }, attributes: ['avatar', 'username', 'administrator', 'verified', "plusActive"]})
+    let user = await User.findOne({where: { userId: profile.userId }, attributes: ['avatar', 'username', 'administrator', 'verified', "plusActive", "userId"]})
 
-    res.send({success: true, profile: {...profile.toJSON(), pfp: user.avatar, flags: {verified: user.verified, plus: user.plusActive}, username: user.username.split("#")[0], links}})
+    res.send({success: true, profile: {...profile.toJSON(), id: user.userId, pfp: user.avatar, flags: {verified: user.verified, plus: user.plusActive}, username: user.username.split("#")[0], links}})
 }
 
 profile.me = async (req, res) => {
@@ -51,7 +50,7 @@ profile.me = async (req, res) => {
 profile.edit = async (req, res) => {
     let auth = await utils.authorize(req, res)
 
-    if(!req.body.enabled) return res.status(400).json({ success: false, description: "You must specify if the profile is to be enabled or not"})
+    if(req.body.enabled === undefined) return res.status(400).json({ success: false, description: "You must specify if the profile is to be enabled or not"})
 
     if(req.body.links.length > 25) res.status(400).json({ success: false, description: "There is a hard cap of 25 links"}) 
 
@@ -108,7 +107,7 @@ profile.banner = async (req, res) => {
     if(!auth.token) return files.deleteFile(req.file.filename)
 
     let pf = await Profile.findOne({ where: { userId: auth.userId } })
-    if(!profile) {
+    if(!pf) {
         files.deleteFile(req.file.filename)
         return res.status(400).json({ success: false, description: "Please save your profile at least once before uploading a banner."})
     }
