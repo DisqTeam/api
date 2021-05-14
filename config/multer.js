@@ -38,6 +38,10 @@ exports.upload = multer({
         if(config.blockedExtensions.includes(fileExt)){
             return cb(new Error("File extension not allowed"))
         }
+
+        if(config.blockedTypes.includes(file.mimetype)){
+            return cb(new Error("File extension not allowed"))
+        }
         return cb(null, true)
     }
 })

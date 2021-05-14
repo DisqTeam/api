@@ -36,7 +36,14 @@
 		".csh",
 		".bash_profile",
 		".bashrc",
-		".profile"
+		".profile",
+        ".html",
+        ".htm",
+        ".xhtml"
+    ],
+    "blockedTypes": [
+        "text/html",
+        "application/xhtml+xml"
     ],
     "uploads": {
         "maxSize": "20MB",
